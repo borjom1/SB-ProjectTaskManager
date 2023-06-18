@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(newUser);
 
         UserDto mappedDto = mapper.map(newUser, UserDto.class);
+        mappedDto.setRoles(newUser.getRoles().stream().map(RoleEntity::getName).toList());
         return generateTokens(mappedDto);
     }
 
@@ -68,6 +69,7 @@ public class UserServiceImpl implements UserService {
         }
 
         UserDto mappedDto = mapper.map(user, UserDto.class);
+        mappedDto.setRoles(user.getRoles().stream().map(RoleEntity::getName).toList());
         return generateTokens(mappedDto);
     }
 
