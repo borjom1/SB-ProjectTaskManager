@@ -48,6 +48,8 @@ public class UserEntity {
     )
     private List<RoleEntity> roles = new ArrayList<>();
 
+    private String refreshToken;
+
     public void addRole(RoleEntity role) {
         this.roles.add(role);
         role.getUsers().add(this);

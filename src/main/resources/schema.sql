@@ -4,15 +4,16 @@ drop table if exists users;
 
 create table users
 (
-    id         bigserial primary key,
-    first_name varchar(64)        not null,
-    last_name  varchar(64)        not null,
-    login      varchar(64) unique not null,
-    password   text               not null,
-    created_at timestamptz        not null default now(),
-    avatar     text               not null,
-    position   varchar(128)       not null,
-    projects   bigint             not null default 0
+    id            bigserial primary key,
+    first_name    varchar(64)        not null,
+    last_name     varchar(64)        not null,
+    login         varchar(64) unique not null,
+    password      text               not null,
+    created_at    timestamptz        not null default now(),
+    avatar        text               not null,
+    position      varchar(128)       not null,
+    projects      bigint             not null default 0,
+    refresh_token text
 );
 
 create table roles
