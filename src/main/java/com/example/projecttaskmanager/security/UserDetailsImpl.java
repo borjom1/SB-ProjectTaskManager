@@ -1,6 +1,7 @@
 package com.example.projecttaskmanager.security;
 
 import com.example.projecttaskmanager.entity.RoleEntity;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,7 +13,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserDetailsImpl implements UserDetails {
 
+    @Getter
     private final Long id;
+
     private final String login;
     private final String password;
     private final List<RoleEntity> roles;
