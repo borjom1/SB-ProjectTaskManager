@@ -1,5 +1,6 @@
 package com.example.projecttaskmanager.service.impl;
 
+import com.example.projecttaskmanager.dto.TokenDto;
 import com.example.projecttaskmanager.dto.UserDto;
 import com.example.projecttaskmanager.dto.UserLoginDto;
 import com.example.projecttaskmanager.dto.UserRegistrationDto;
@@ -7,6 +8,8 @@ import com.example.projecttaskmanager.entity.RoleEntity;
 import com.example.projecttaskmanager.entity.UserEntity;
 import com.example.projecttaskmanager.exception.CredentialsNotMatchException;
 import com.example.projecttaskmanager.exception.LoginAlreadyExistsException;
+import com.example.projecttaskmanager.exception.UserNotFoundException;
+import com.example.projecttaskmanager.model.Tokens;
 import com.example.projecttaskmanager.repository.RoleRepository;
 import com.example.projecttaskmanager.repository.UserRepository;
 import com.example.projecttaskmanager.security.jwt.JwtProvider;
@@ -52,9 +55,7 @@ public class UserServiceImpl implements UserService {
         newUser.addRole(roleUser);
         userRepository.save(newUser);
 
-        UserDto mappedDto = mapper.map(newUser, UserDto.class);
-        mappedDto.setRoles(newUser.getRoles().stream().map(RoleEntity::getName).toList());
-        return generateTokens(mappedDto);
+        return packUserDto(newUser);
     }
 
     @Override
@@ -68,15 +69,52 @@ public class UserServiceImpl implements UserService {
             throw new CredentialsNotMatchException("incorrect credentials");
         }
 
-        UserDto mappedDto = mapper.map(user, UserDto.class);
-        mappedDto.setRoles(user.getRoles().stream().map(RoleEntity::getName).toList());
-        return generateTokens(mappedDto);
+        return packUserDto(user);
     }
 
-    private UserDto generateTokens(UserDto dto) {
-        dto.setAccess(jwtProvider.generateToken(ACCESS, dto.getId(), dto.getLogin()));
-        dto.setRefresh(jwtProvider.generateToken(REFRESH, dto.getId(), dto.getLogin()));
-        return dto;
+    @Override
+    public UserDto refreshTokens(TokenDto dto) throws CredentialsNotMatchException {
+        log.info("refreshTokens():");
+
+        String refreshToken = dto.getToken();
+        if (!jwtProvider.isTokenValid(refreshToken, REFRESH)) {
+            throw new CredentialsNotMatchException("refresh token is invalid");
+        }
+        UserEntity user = userRepository.findUserEntityByRefreshToken(refreshToken)
+                .orElseThrow(() -> new CredentialsNotMatchException("refresh token not match"));
+
+        return packUserDto(user);
+    }
+
+    @Override
+    public void logout(Long userId) throws UserNotFoundException {
+        log.info("refreshTokens(): user-id={}", userId);
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("user with specified id not found"));
+
+        user.setRefreshToken(null);
+        userRepository.save(user);
+    }
+
+    private UserDto packUserDto(UserEntity user) {
+        Tokens tokens = generateTokens(user.getId(), user.getLogin());
+        user.setRefreshToken(tokens.refresh());
+        userRepository.save(user);
+
+        UserDto mappedDto = mapper.map(user, UserDto.class);
+        mappedDto.setRoles(user.getRoles().stream().map(RoleEntity::getName).toList());
+        mappedDto.setRefresh(tokens.refresh());
+        mappedDto.setAccess(tokens.access());
+
+        return mappedDto;
+    }
+
+    private Tokens generateTokens(Long id, String login) {
+        return new Tokens(
+                jwtProvider.generateToken(ACCESS, id, login),
+                jwtProvider.generateToken(REFRESH, id, login)
+        );
     }
 
 }
