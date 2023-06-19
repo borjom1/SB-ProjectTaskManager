@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
                 try (ServletOutputStream os = response.getOutputStream()) {
-                    String json = new JSONObject(Map.of("message", "invalid access token")).toString();
+                    String json = new JSONObject(Map.of("error", "invalid access token")).toString();
                     os.print(json);
                     os.flush();
                 }
