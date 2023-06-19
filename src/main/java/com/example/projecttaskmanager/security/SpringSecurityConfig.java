@@ -20,6 +20,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+import static org.springframework.web.cors.CorsConfiguration.ALL;
 
 @Slf4j
 @Configuration
@@ -53,8 +54,9 @@ public class SpringSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigSource() {
         var corsConfig = new CorsConfiguration();
-        corsConfig.addAllowedOrigin("http://localhost:3000");
-        corsConfig.addAllowedMethod(CorsConfiguration.ALL);
+        corsConfig.addAllowedOrigin(ALL);
+        corsConfig.addAllowedMethod(ALL);
+        corsConfig.addAllowedHeader(ALL);
 
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
