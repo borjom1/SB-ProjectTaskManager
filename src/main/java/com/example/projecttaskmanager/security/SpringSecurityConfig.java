@@ -42,9 +42,9 @@ public class SpringSecurityConfig {
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(matcherRegistry -> matcherRegistry
-                        .requestMatchers("/auth/user/**").hasRole("USER")
-                        .requestMatchers("/auth/manager/**").hasRole("MANAGER")
-                        .requestMatchers("/auth/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/manager/**").hasRole("MANAGER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 );
 
