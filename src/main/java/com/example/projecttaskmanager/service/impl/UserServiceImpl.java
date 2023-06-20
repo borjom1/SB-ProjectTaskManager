@@ -1,9 +1,6 @@
 package com.example.projecttaskmanager.service.impl;
 
-import com.example.projecttaskmanager.dto.TokenDto;
-import com.example.projecttaskmanager.dto.UserDto;
-import com.example.projecttaskmanager.dto.UserLoginDto;
-import com.example.projecttaskmanager.dto.UserRegistrationDto;
+import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.entity.RoleEntity;
 import com.example.projecttaskmanager.entity.UserEntity;
 import com.example.projecttaskmanager.exception.CredentialsNotMatchException;
@@ -20,6 +17,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static com.example.projecttaskmanager.security.jwt.JwtType.ACCESS;
@@ -90,11 +89,32 @@ public class UserServiceImpl implements UserService {
     public void logout(Long userId) throws UserNotFoundException {
         log.info("refreshTokens(): user-id={}", userId);
 
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("user with specified id not found"));
-
+        UserEntity user = findUserById(userId);
         user.setRefreshToken(null);
         userRepository.save(user);
+    }
+
+    @Override
+    public UserInfoDto getUserInfo(Long userId) throws UserNotFoundException {
+        log.info("getUserInfo(): user-id={}", userId);
+
+        UserEntity user = findUserById(userId);
+        return new UserInfoDto(
+                "%s %s".formatted(user.getFirstName(), user.getLastName()),
+                user.getPosition(),
+                LocalDate.ofInstant(user.getCreatedAt(), ZoneId.systemDefault()),
+                user.getProjects(),
+                user.getRoles().stream()
+                        .map(RoleEntity::getName)
+                        .map(role -> role.substring(5))
+                        .toList()
+        );
+    }
+
+    @Override
+    public UserEntity findUserById(Long userId) throws UserNotFoundException {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("user with specified id not found"));
     }
 
     private UserDto packUserDto(UserEntity user) {
@@ -103,7 +123,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         UserDto mappedDto = mapper.map(user, UserDto.class);
-        mappedDto.setRoles(user.getRoles().stream().map(RoleEntity::getName).toList());
         mappedDto.setRefresh(tokens.refresh());
         mappedDto.setAccess(tokens.access());
 
