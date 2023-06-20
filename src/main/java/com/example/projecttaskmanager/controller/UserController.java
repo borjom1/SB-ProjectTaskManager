@@ -1,9 +1,11 @@
 package com.example.projecttaskmanager.controller;
 
 import com.example.projecttaskmanager.dto.UserInfoDto;
+import com.example.projecttaskmanager.dto.UserUpdateDto;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 import com.example.projecttaskmanager.security.UserDetailsImpl;
 import com.example.projecttaskmanager.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,12 @@ public class UserController {
     @GetMapping
     public UserInfoDto getUserInfo() throws UserNotFoundException {
         return userService.getUserInfo(getPrincipal().getId());
+    }
+
+    @ResponseStatus(NO_CONTENT)
+    @PatchMapping("/update")
+    public void updateUserInfo(@RequestBody UserUpdateDto dto) throws UserNotFoundException {
+        userService.updateUser(dto, getPrincipal().getId());
     }
 
     private UserDetailsImpl getPrincipal() {
