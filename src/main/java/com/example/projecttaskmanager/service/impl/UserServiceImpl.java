@@ -117,6 +117,18 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("user with specified id not found"));
     }
 
+    @Override
+    public void updateUser(UserUpdateDto dto, Long userId) throws UserNotFoundException {
+        log.info("updateUser(): user-id={}, dto={}", userId, dto);
+        UserEntity user = findUserById(userId);
+
+        user.setFirstName(dto.getFirstName() != null ? dto.getFirstName() : user.getFirstName());
+        user.setLastName(dto.getLastName() != null ? dto.getLastName() : user.getLastName());
+        user.setPosition(dto.getPosition() != null ? dto.getPosition() : user.getPosition());
+
+        userRepository.save(user);
+    }
+
     private UserDto packUserDto(UserEntity user) {
         Tokens tokens = generateTokens(user.getId(), user.getLogin());
         user.setRefreshToken(tokens.refresh());

@@ -14,5 +14,6 @@ public interface UserService {
     void logout(Long userId) throws UserNotFoundException;
     UserInfoDto getUserInfo(Long userId) throws UserNotFoundException;
     UserEntity findUserById(Long userId) throws UserNotFoundException;
+    void updateUser(UserUpdateDto dto, Long userId) throws UserNotFoundException;
 
 }
