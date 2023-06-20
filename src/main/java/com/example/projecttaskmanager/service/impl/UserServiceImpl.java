@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> user = userRepository.findUserEntityByLogin(dto.getLogin());
 
         if (user.isPresent()) {
-            throw new LoginAlreadyExistsException("user with login <%s> already exists".formatted(dto.getLogin()));
+            throw new LoginAlreadyExistsException("such login already exists");
         }
 
         UserEntity newUser = mapper.map(dto, UserEntity.class);
