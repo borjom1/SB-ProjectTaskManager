@@ -24,7 +24,7 @@ public class UserRegistrationDto {
     private final String login;
 
     @NotBlank(message = "should not be blank")
-    @Size(min = 5, max = 128, message = "length should be between 5 and 128")
+    @Size(min = 3, max = 64, message = "length should be between 3 and 64")
     private final String position;
 
     @NotBlank(message = "should not be blank")
