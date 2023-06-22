@@ -1,5 +1,6 @@
 package com.example.projecttaskmanager.entity;
 
+import com.example.projecttaskmanager.util.AvatarUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,7 +33,7 @@ public class UserEntity {
     private Instant createdAt = Instant.now();
 
     @Builder.Default
-    private String avatar = "";
+    private String avatar = AvatarUtils.DEFAULT_AVATAR_PATH;
 
     private String position;
 
