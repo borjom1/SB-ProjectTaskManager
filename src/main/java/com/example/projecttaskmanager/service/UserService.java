@@ -5,6 +5,7 @@ import com.example.projecttaskmanager.entity.UserEntity;
 import com.example.projecttaskmanager.exception.CredentialsNotMatchException;
 import com.example.projecttaskmanager.exception.LoginAlreadyExistsException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
+import org.apache.catalina.User;
 
 public interface UserService {
 
@@ -15,5 +16,7 @@ public interface UserService {
     UserInfoDto getUserInfo(Long userId) throws UserNotFoundException;
     UserEntity findUserById(Long userId) throws UserNotFoundException;
     void updateUser(UserUpdateDto dto, Long userId) throws UserNotFoundException;
+    void updateAvatar(AvatarDto dto, Long userId) throws UserNotFoundException;
+    AvatarDto getAvatar(Long id) throws UserNotFoundException;
 
 }

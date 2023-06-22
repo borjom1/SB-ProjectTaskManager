@@ -11,12 +11,14 @@ import com.example.projecttaskmanager.repository.RoleRepository;
 import com.example.projecttaskmanager.repository.UserRepository;
 import com.example.projecttaskmanager.security.jwt.JwtProvider;
 import com.example.projecttaskmanager.service.UserService;
+import com.example.projecttaskmanager.util.AvatarUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -127,6 +129,26 @@ public class UserServiceImpl implements UserService {
         user.setPosition(dto.getPosition() != null ? dto.getPosition() : user.getPosition());
 
         userRepository.save(user);
+    }
+
+    @Override
+    public void updateAvatar(AvatarDto dto, Long userId) throws UserNotFoundException {
+        log.info("updateAvatar(): user-id={}", userId);
+
+        UserEntity user = findUserById(userId);
+        AvatarUtils.saveFile(String.valueOf(user.getId()), dto.getBinary());
+        user.setAvatar("%s%s%d".formatted(AvatarUtils.AVATARS_DIR_PATH, File.separator, user.getId()));
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public AvatarDto getAvatar(Long id) throws UserNotFoundException {
+        log.info("getAvatar(): id={}", id);
+        UserEntity user = findUserById(id);
+
+        String content = AvatarUtils.readFile(user.getAvatar());
+        return new AvatarDto(content);
     }
 
     private UserDto packUserDto(UserEntity user) {
