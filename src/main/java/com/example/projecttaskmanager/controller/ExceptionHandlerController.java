@@ -3,9 +3,9 @@ package com.example.projecttaskmanager.controller;
 import com.example.projecttaskmanager.dto.ApiError;
 import com.example.projecttaskmanager.exception.CredentialsNotMatchException;
 import com.example.projecttaskmanager.exception.LoginAlreadyExistsException;
+import com.example.projecttaskmanager.exception.UserNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -39,6 +39,7 @@ public class ExceptionHandlerController {
     @ExceptionHandler({
             LoginAlreadyExistsException.class,
             CredentialsNotMatchException.class,
+            UserNotFoundException.class
     })
     public ApiError handle(Exception e, HttpServletRequest request) {
         log.warn("handle(): {}", e.getMessage());
