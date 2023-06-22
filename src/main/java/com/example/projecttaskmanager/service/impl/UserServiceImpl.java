@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(Long userId) throws UserNotFoundException {
-        log.info("refreshTokens(): user-id={}", userId);
+        log.info("logout(): user-id={}", userId);
 
         UserEntity user = findUserById(userId);
         user.setRefreshToken(null);
@@ -105,7 +105,7 @@ public class UserServiceImpl implements UserService {
                 "%s %s".formatted(user.getFirstName(), user.getLastName()),
                 user.getPosition(),
                 LocalDate.ofInstant(user.getCreatedAt(), ZoneId.systemDefault()),
-                user.getProjects(),
+                user.getProjectsCount(),
                 user.getRoles().stream()
                         .map(RoleEntity::getName)
                         .map(role -> role.substring(5))
