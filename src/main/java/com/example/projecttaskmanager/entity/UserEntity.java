@@ -37,8 +37,9 @@ public class UserEntity {
 
     private String position;
 
+    @Column(name = "projects")
     @Builder.Default
-    private long projects = 0;
+    private long projectsCount = 0;
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
@@ -50,6 +51,10 @@ public class UserEntity {
     private List<RoleEntity> roles = new ArrayList<>();
 
     private String refreshToken;
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "users")
+    private List<ProjectEntity> projects = new ArrayList<>();
 
     public void addRole(RoleEntity role) {
         this.roles.add(role);
