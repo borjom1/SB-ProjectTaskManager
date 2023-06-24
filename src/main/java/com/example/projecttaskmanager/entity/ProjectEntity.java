@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(of = {"id", "name"})
 @JsonIgnoreProperties("users")
-@ToString(exclude = "users")
+@ToString(exclude = {"users", "stories"})
 @Builder
 public class ProjectEntity {
 
@@ -39,6 +39,10 @@ public class ProjectEntity {
     )
     @Builder.Default
     private List<UserEntity> users = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project")
+    @Builder.Default
+    private List<StoryEntity> stories = new ArrayList<>();
 
     public void addMember(UserEntity user) {
         users.add(user);
