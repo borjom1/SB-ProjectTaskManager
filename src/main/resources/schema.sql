@@ -1,3 +1,6 @@
+drop table if exists task_marks;
+drop table if exists tasks;
+drop table if exists stories;
 drop table if exists members;
 drop table if exists projects;
 drop table if exists user_roles;
@@ -42,7 +45,33 @@ create table projects
 
 create table members
 (
-    user_id    bigint,
-    project_id bigint,
+    user_id    bigint references users (id),
+    project_id bigint references projects (id),
     primary key (user_id, project_id)
+);
+
+create table stories
+(
+    id         bigserial primary key,
+    project_id bigint references projects (id) not null,
+    name       varchar(32)                     not null,
+    "from"     date                            not null,
+    "to"       date                            not null,
+    created_at timestamptz                     not null
+);
+
+create table tasks
+(
+    id               bigserial primary key,
+    story_id         bigint references stories (id) not null,
+    assigned_user_id bigint references users (id)   not null,
+    title            varchar(128)                   not null default '',
+    status           varchar(32)                    not null default ''
+);
+
+create table task_marks
+(
+    task_id bigint references tasks (id),
+    mark    varchar(32),
+    primary key (task_id, mark)
 );
