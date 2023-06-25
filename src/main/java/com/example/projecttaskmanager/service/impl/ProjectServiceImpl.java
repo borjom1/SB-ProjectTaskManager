@@ -1,14 +1,13 @@
 package com.example.projecttaskmanager.service.impl;
 
 import com.example.projecttaskmanager.dto.*;
-import com.example.projecttaskmanager.entity.ProjectEntity;
-import com.example.projecttaskmanager.entity.StoryEntity;
-import com.example.projecttaskmanager.entity.UserEntity;
+import com.example.projecttaskmanager.entity.*;
 import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 import com.example.projecttaskmanager.repository.ProjectRepository;
 import com.example.projecttaskmanager.repository.StoryRepository;
+import com.example.projecttaskmanager.repository.TaskRepository;
 import com.example.projecttaskmanager.service.ProjectService;
 import com.example.projecttaskmanager.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.projecttaskmanager.entity.TaskStatus.NOT_STARTED;
 import static java.util.Comparator.comparing;
 
 @Service
@@ -27,8 +27,11 @@ import static java.util.Comparator.comparing;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ModelMapper mapper;
+
     private final ProjectRepository projectRepository;
     private final StoryRepository storyRepository;
+    private final TaskRepository taskRepository;
+
     private final UserService userService;
 
     @Override
@@ -82,8 +85,10 @@ public class ProjectServiceImpl implements ProjectService {
                             task.getId(),
                             task.getTitle(),
                             task.getStatus(),
-                            task.getAssignedUser().getId(),
-                            "%s %s".formatted(assignedUser.getFirstName(), assignedUser.getLastName()),
+                            assignedUser == null ? null : assignedUser.getId(),
+                            assignedUser == null ?
+                                    null :
+                                    "%s %s".formatted(assignedUser.getFirstName(), assignedUser.getLastName()),
                             task.getMarks()
                     );
                 }).toList();
@@ -135,8 +140,34 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.addStory(newStory);
         storyRepository.save(newStory);
-//        projectRepository.save(project);
         return extractDto(newStory);
+    }
+
+    @Override
+    public TaskDto createTask(NewTaskDto dto, Long userId)
+            throws StoryNotFoundException, FakeMemberException, UserNotFoundException {
+        log.info("createTask(): NewTaskDto={}, userId={}", dto, userId);
+
+        StoryEntity story = storyRepository.findById(dto.getStoryId())
+                .orElseThrow(() -> new StoryNotFoundException("story not found"));
+
+        UserEntity user = userService.findUserById(userId);
+
+        ProjectEntity project = story.getProject();
+        user.getProjects().stream()
+                .filter(project::equals)
+                .findAny()
+                .orElseThrow(() -> new FakeMemberException("you are not member of the project"));
+
+        TaskEntity builtTask = TaskEntity.builder()
+                .title(dto.getTitle())
+                .story(story)
+                .marks(dto.getMarks().stream().map(String::toUpperCase).toList())
+                .status(NOT_STARTED)
+                .build();
+
+        taskRepository.save(builtTask);
+        return mapper.map(builtTask, TaskDto.class);
     }
 
     private ProjectDto extractDto(ProjectEntity project) {
