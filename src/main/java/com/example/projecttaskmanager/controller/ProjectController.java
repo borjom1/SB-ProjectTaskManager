@@ -1,7 +1,9 @@
 package com.example.projecttaskmanager.controller;
 
 import com.example.projecttaskmanager.dto.*;
+import com.example.projecttaskmanager.entity.TaskMark;
 import com.example.projecttaskmanager.exception.FakeMemberException;
+import com.example.projecttaskmanager.exception.InvalidRequestBodyException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 import com.example.projecttaskmanager.security.UserDetailsImpl;
@@ -43,6 +45,21 @@ public class ProjectController {
         return projectService.getTasks(projectId, storyId, getPrincipal().getId());
     }
 
+    @RolesAllowed({"MANAGER", "ADMIN"})
+    @PostMapping("/tasks")
+    public TaskDto createTask(@Valid @RequestBody NewTaskDto dto)
+            throws UserNotFoundException, FakeMemberException, StoryNotFoundException, InvalidRequestBodyException {
+
+        try {
+            dto.getMarks().forEach(TaskMark::valueOf);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestBodyException("invalid mark");
+        }
+
+        return projectService.createTask(dto, getPrincipal().getId());
+    }
+
+    @Deprecated
     @GetMapping("/{id}/story")
     public StoryDto getFirstStory(@PathVariable Long id) throws UserNotFoundException, FakeMemberException {
         return projectService.getFirstStory(id, getPrincipal().getId());
