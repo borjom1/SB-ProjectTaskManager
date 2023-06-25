@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
 import java.util.Optional;
@@ -168,6 +169,53 @@ public class ProjectServiceImpl implements ProjectService {
 
         taskRepository.save(builtTask);
         return mapper.map(builtTask, TaskDto.class);
+    }
+
+    @Override
+    public List<MemberDto> getMembers(Long projectId, Long userId) throws FakeMemberException, UserNotFoundException {
+        log.info("getMembers(): projectId={}, userId={}", projectId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        ProjectEntity project = findProject(projectId, user);
+
+        return project.getUsers().stream()
+                .map(userEntity -> new MemberDto(
+                        userEntity.getId(),
+                        "%s %s".formatted(userEntity.getFirstName(), userEntity.getLastName()),
+                        userEntity.getLogin(),
+                        userEntity.getRoles().stream().map(RoleEntity::getName).toList()
+                )).toList();
+    }
+
+    @Override
+    public void addMember(Long projectId, Long newUserId, Long userId) throws FakeMemberException, UserNotFoundException {
+        log.info("addMember(): projectId={}, newUserId={}, userId={}", projectId, newUserId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        ProjectEntity project = findProject(projectId, user);
+
+        UserEntity newMember = userService.findUserById(newUserId);
+        boolean isAlreadyMember = newMember.getProjects().stream().anyMatch(project::equals);
+
+        if (isAlreadyMember) {
+            return;
+        }
+
+        project.addMember(newMember);
+        projectRepository.save(project);
+    }
+
+    @Override
+    public void removeMember(Long projectId, Long memberId, Long userId) throws FakeMemberException, UserNotFoundException {
+        log.info("removeMember(): projectId={}, memberId={}, userId={}", projectId, memberId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        ProjectEntity project = findProject(projectId, user);
+
+        UserEntity member = userService.findUserById(memberId);
+        project.removeMember(member);
+
+        projectRepository.save(project);
     }
 
     private ProjectDto extractDto(ProjectEntity project) {

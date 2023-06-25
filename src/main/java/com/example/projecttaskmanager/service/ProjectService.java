@@ -24,4 +24,9 @@ public interface ProjectService {
     StoryDto createStory(NewStoryDto dto, Long projectId, Long userId) throws FakeMemberException, UserNotFoundException;
     TaskDto createTask(NewTaskDto dto, Long userId) throws StoryNotFoundException, FakeMemberException, UserNotFoundException;
 
+    List<MemberDto> getMembers(Long projectId, Long userId) throws FakeMemberException, UserNotFoundException;
+
+    void addMember(Long projectId, Long newUserId, Long userId) throws FakeMemberException, UserNotFoundException;
+    void removeMember(Long projectId, Long memberId, Long userId) throws FakeMemberException, UserNotFoundException;
+
 }
