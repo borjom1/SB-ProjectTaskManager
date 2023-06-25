@@ -1,8 +1,10 @@
 package com.example.projecttaskmanager.service;
 
 import com.example.projecttaskmanager.dto.*;
+import com.example.projecttaskmanager.entity.TaskStatus;
 import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
+import com.example.projecttaskmanager.exception.TaskNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 
 import java.util.List;
@@ -28,5 +30,11 @@ public interface ProjectService {
 
     void addMember(Long projectId, Long newUserId, Long userId) throws FakeMemberException, UserNotFoundException;
     void removeMember(Long projectId, Long memberId, Long userId) throws FakeMemberException, UserNotFoundException;
+
+    void assignTask(Long storyId, Long taskId, Long userId)
+            throws FakeMemberException, TaskNotFoundException, UserNotFoundException, StoryNotFoundException;
+
+    void changeTaskStatus(Long projectId, Long taskId, TaskStatus newStatus, Long userId)
+            throws FakeMemberException, UserNotFoundException, StoryNotFoundException, TaskNotFoundException;
 
 }

@@ -4,6 +4,7 @@ import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.entity.*;
 import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
+import com.example.projecttaskmanager.exception.TaskNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 import com.example.projecttaskmanager.repository.ProjectRepository;
 import com.example.projecttaskmanager.repository.StoryRepository;
@@ -14,11 +15,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.example.projecttaskmanager.entity.TaskStatus.DONE;
 import static com.example.projecttaskmanager.entity.TaskStatus.NOT_STARTED;
 import static java.util.Comparator.comparing;
 
@@ -154,11 +155,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         UserEntity user = userService.findUserById(userId);
 
-        ProjectEntity project = story.getProject();
-        user.getProjects().stream()
-                .filter(project::equals)
-                .findAny()
-                .orElseThrow(() -> new FakeMemberException("you are not member of the project"));
+        checkProjectMembership(user, story.getProject());
 
         TaskEntity builtTask = TaskEntity.builder()
                 .title(dto.getTitle())
@@ -167,7 +164,11 @@ public class ProjectServiceImpl implements ProjectService {
                 .status(NOT_STARTED)
                 .build();
 
+        ProjectEntity project = story.getProject();
+        project.setTasks(project.getTasks() + 1L);
+
         taskRepository.save(builtTask);
+        projectRepository.save(project);
         return mapper.map(builtTask, TaskDto.class);
     }
 
@@ -218,6 +219,51 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(project);
     }
 
+    @Override
+    public void assignTask(Long storyId, Long taskId, Long userId)
+            throws FakeMemberException, TaskNotFoundException, UserNotFoundException, StoryNotFoundException {
+
+        log.info("assignTask(): storyId={}, taskId={}, userId={}", storyId, taskId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        StoryEntity story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new StoryNotFoundException("story not found"));
+
+        checkProjectMembership(user, story.getProject());
+
+        TaskEntity task = findTask(story, taskId);
+        task.setAssignedUser(user);
+        taskRepository.save(task);
+    }
+
+    @Override
+    public void changeTaskStatus(Long storyId, Long taskId, TaskStatus newStatus, Long userId)
+            throws FakeMemberException, UserNotFoundException, StoryNotFoundException, TaskNotFoundException {
+
+        log.info("changeTaskStatus(): storyId={}, taskId={}, userId={}", storyId, taskId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        StoryEntity story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new StoryNotFoundException("story not found"));
+
+        ProjectEntity project = story.getProject();
+        checkProjectMembership(user, project);
+
+        TaskEntity task = findTask(story, taskId);
+        Long updatedDoneTasks = project.getTasksDone();
+
+        if (task.getStatus().equals(DONE) && !newStatus.equals(DONE)) { // DONE -> [NOT_STARTED, IN_PROGRESS]
+            updatedDoneTasks = project.getTasksDone() - 1;
+        } else if (!task.getStatus().equals(DONE) && newStatus.equals(DONE)) { // [NOT_STARTED, IN_PROGRESS] -> DONE
+            updatedDoneTasks = project.getTasksDone() + 1;
+        }
+
+        project.setTasksDone(updatedDoneTasks);
+        task.setStatus(newStatus);
+        taskRepository.save(task);
+        projectRepository.save(project);
+    }
+
     private ProjectDto extractDto(ProjectEntity project) {
         return new ProjectDto(
                 project.getId(),
@@ -240,6 +286,20 @@ public class ProjectServiceImpl implements ProjectService {
                 .filter(project -> project.getId().equals(projectId))
                 .findAny()
                 .orElseThrow(() -> new FakeMemberException("you are not a member of the project"));
+    }
+
+    private TaskEntity findTask(StoryEntity story, Long taskId) throws TaskNotFoundException {
+        return story.getTasks().stream()
+                .filter(task -> task.getId().equals(taskId))
+                .findAny()
+                .orElseThrow(() -> new TaskNotFoundException("task is not found"));
+    }
+
+    private void checkProjectMembership(UserEntity user, ProjectEntity project) throws FakeMemberException {
+        user.getProjects().stream()
+                .filter(project::equals)
+                .findAny()
+                .orElseThrow(() -> new FakeMemberException("you are not member of the project"));
     }
 
 }
