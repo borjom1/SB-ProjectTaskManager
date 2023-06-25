@@ -47,11 +47,13 @@ public class ProjectEntity {
     public void addMember(UserEntity user) {
         users.add(user);
         user.getProjects().add(this);
+        user.setProjectsCount(user.getProjectsCount() + 1L);
     }
 
     public void removeMember(UserEntity user) {
         users.remove(user);
         user.getProjects().remove(this);
+        user.setProjectsCount(user.getProjectsCount() - 1L);
     }
 
     public void addStory(StoryEntity story) {
