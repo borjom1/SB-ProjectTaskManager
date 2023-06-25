@@ -27,11 +27,16 @@ public class StoryEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_id")
     private ProjectEntity project;
-
     private String name;
-    private LocalDate from;
-    private LocalDate to;
-    private Instant createdAt;
+
+    @Column(name = "start_date")
+    private LocalDate start;
+
+    @Column(name = "end_date")
+    private LocalDate end;
+
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
     @OneToMany(mappedBy = "story")
     @Builder.Default

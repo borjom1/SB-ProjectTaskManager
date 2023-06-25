@@ -16,7 +16,7 @@ public class StoryDto {
     private Long id;
     private String name;
     private int tasksCount;
-    private LocalDate from;
-    private LocalDate to;
+    private LocalDate start;
+    private LocalDate end;
 
 }
