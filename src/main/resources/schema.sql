@@ -55,8 +55,8 @@ create table stories
     id         bigserial primary key,
     project_id bigint references projects (id) not null,
     name       varchar(32)                     not null,
-    "from"     date                            not null,
-    "to"       date                            not null,
+    start_date      date                            not null,
+    end_date        date                            not null,
     created_at timestamptz                     not null
 );
 

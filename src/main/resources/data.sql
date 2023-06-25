@@ -27,8 +27,9 @@ values (1, 1);
 
 -- tasks insertion
 
-insert into stories(project_id, name, "from", "to", created_at)
+insert into stories(project_id, name, start_date, end_date, created_at)
 values (1, 'Story #1', now(), now(), now());
+
 insert into tasks(story_id, assigned_user_id, title, status)
 values (1, 1, 'Analyze & compare all similar apps in the market', 'DONE'),
        (1, 1, 'Develop app design in Figma', 'IN_PROGRESS'),
