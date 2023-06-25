@@ -55,8 +55,8 @@ create table stories
     id         bigserial primary key,
     project_id bigint references projects (id) not null,
     name       varchar(32)                     not null,
-    start_date      date                            not null,
-    end_date        date                            not null,
+    start_date date                            not null,
+    end_date   date                            not null,
     created_at timestamptz                     not null
 );
 
@@ -64,7 +64,7 @@ create table tasks
 (
     id               bigserial primary key,
     story_id         bigint references stories (id) not null,
-    assigned_user_id bigint references users (id)   not null,
+    assigned_user_id bigint references users (id),
     title            varchar(128)                   not null default '',
     status           varchar(32)                    not null default ''
 );
