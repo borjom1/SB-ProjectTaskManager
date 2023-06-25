@@ -36,6 +36,7 @@ public class ExceptionHandlerController {
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler({
+            InvalidRequestBodyException.class,
             LoginAlreadyExistsException.class,
             CredentialsNotMatchException.class,
             UserNotFoundException.class,
