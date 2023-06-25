@@ -1,9 +1,6 @@
 package com.example.projecttaskmanager.controller;
 
-import com.example.projecttaskmanager.dto.NewProjectDto;
-import com.example.projecttaskmanager.dto.ProjectDto;
-import com.example.projecttaskmanager.dto.StoryDto;
-import com.example.projecttaskmanager.dto.TaskDto;
+import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
@@ -54,6 +51,14 @@ public class ProjectController {
     @GetMapping("/{id}/stories")
     public List<StoryDto> getStories(@PathVariable Long id) throws UserNotFoundException, FakeMemberException {
         return projectService.getStories(id, getPrincipal().getId());
+    }
+
+    @RolesAllowed({"MANAGER", "ADMIN"})
+    @PostMapping("/{id}/story")
+    public StoryDto createStory(@PathVariable Long id, @Valid @RequestBody NewStoryDto dto)
+            throws UserNotFoundException, FakeMemberException {
+
+        return projectService.createStory(dto, id, getPrincipal().getId());
     }
 
     private UserDetailsImpl getPrincipal() {
