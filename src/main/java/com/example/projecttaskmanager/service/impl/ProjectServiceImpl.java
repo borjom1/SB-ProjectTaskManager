@@ -1,9 +1,6 @@
 package com.example.projecttaskmanager.service.impl;
 
-import com.example.projecttaskmanager.dto.NewProjectDto;
-import com.example.projecttaskmanager.dto.ProjectDto;
-import com.example.projecttaskmanager.dto.StoryDto;
-import com.example.projecttaskmanager.dto.TaskDto;
+import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.entity.ProjectEntity;
 import com.example.projecttaskmanager.entity.StoryEntity;
 import com.example.projecttaskmanager.entity.UserEntity;
@@ -11,6 +8,7 @@ import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
 import com.example.projecttaskmanager.repository.ProjectRepository;
+import com.example.projecttaskmanager.repository.StoryRepository;
 import com.example.projecttaskmanager.service.ProjectService;
 import com.example.projecttaskmanager.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +28,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ModelMapper mapper;
     private final ProjectRepository projectRepository;
+    private final StoryRepository storyRepository;
     private final UserService userService;
 
     @Override
@@ -99,11 +98,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return project.getStories().stream()
                 .sorted(comparing(StoryEntity::getCreatedAt))
-                .map(story -> {
-                    StoryDto mappedDto = mapper.map(story, StoryDto.class);
-                    mappedDto.setTasksCount(story.getTasks().size());
-                    return mappedDto;
-                })
+                .map(this::extractDto)
                 .toList();
     }
 
@@ -120,10 +115,28 @@ public class ProjectServiceImpl implements ProjectService {
 
         StoryDto dto = null;
         if (optStory.isPresent()) {
-            dto = mapper.map(optStory.get(), StoryDto.class);
-            dto.setTasksCount(optStory.get().getTasks().size());
+            dto = extractDto(optStory.get());
         }
         return dto;
+    }
+
+    @Override
+    public StoryDto createStory(NewStoryDto dto, Long projectId, Long userId) throws FakeMemberException, UserNotFoundException {
+        log.info("createStory(): NewStoryDto={}, projectId={}, userId={}", dto, projectId, userId);
+
+        UserEntity user = userService.findUserById(userId);
+        ProjectEntity project = findProject(projectId, user);
+
+        StoryEntity newStory = StoryEntity.builder()
+                .name(dto.getName())
+                .start(dto.getFrom())
+                .end(dto.getTo())
+                .build();
+
+        project.addStory(newStory);
+        storyRepository.save(newStory);
+//        projectRepository.save(project);
+        return extractDto(newStory);
     }
 
     private ProjectDto extractDto(ProjectEntity project) {
@@ -135,6 +148,12 @@ public class ProjectServiceImpl implements ProjectService {
                 project.getTasksDone(),
                 project.getTasks() - project.getTasksDone()
         );
+    }
+
+    private StoryDto extractDto(StoryEntity story) {
+        StoryDto mappedDto = mapper.map(story, StoryDto.class);
+        mappedDto.setTasksCount(story.getTasks().size());
+        return mappedDto;
     }
 
     private ProjectEntity findProject(Long projectId, UserEntity user) throws FakeMemberException {

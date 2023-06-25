@@ -1,9 +1,6 @@
 package com.example.projecttaskmanager.service;
 
-import com.example.projecttaskmanager.dto.NewProjectDto;
-import com.example.projecttaskmanager.dto.ProjectDto;
-import com.example.projecttaskmanager.dto.StoryDto;
-import com.example.projecttaskmanager.dto.TaskDto;
+import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.exception.FakeMemberException;
 import com.example.projecttaskmanager.exception.StoryNotFoundException;
 import com.example.projecttaskmanager.exception.UserNotFoundException;
@@ -24,5 +21,6 @@ public interface ProjectService {
     List<StoryDto> getStories(Long projectId, Long userId) throws FakeMemberException, UserNotFoundException;
 
     StoryDto getFirstStory(Long projectId, Long userId) throws FakeMemberException, UserNotFoundException;
+    StoryDto createStory(NewStoryDto dto, Long projectId, Long userId) throws FakeMemberException, UserNotFoundException;
 
 }
