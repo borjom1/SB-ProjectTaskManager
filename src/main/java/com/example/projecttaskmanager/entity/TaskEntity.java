@@ -26,7 +26,7 @@ public class TaskEntity {
     @JoinColumn(name = "story_id")
     private StoryEntity story;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "assigned_user_id")
     private UserEntity assignedUser;
 
