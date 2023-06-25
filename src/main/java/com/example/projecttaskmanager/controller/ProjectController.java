@@ -11,10 +11,13 @@ import com.example.projecttaskmanager.service.ProjectService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/user/projects")
@@ -76,6 +79,25 @@ public class ProjectController {
             throws UserNotFoundException, FakeMemberException {
 
         return projectService.createStory(dto, id, getPrincipal().getId());
+    }
+
+    @GetMapping("/{id}/members")
+    public List<MemberDto> getMembers(@PathVariable Long id) throws UserNotFoundException, FakeMemberException {
+        return projectService.getMembers(id, getPrincipal().getId());
+    }
+
+    @RolesAllowed({"MANAGER", "ADMIN"})
+    @PatchMapping("/{projectId}/members/{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void addMember(@PathVariable Long projectId, @PathVariable Long id) throws UserNotFoundException, FakeMemberException {
+        projectService.addMember(projectId, id, getPrincipal().getId());
+    }
+
+    @RolesAllowed({"MANAGER", "ADMIN"})
+    @DeleteMapping("/{projectId}/members/{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void removeMember(@PathVariable Long projectId, @PathVariable Long id) throws UserNotFoundException, FakeMemberException {
+        projectService.removeMember(projectId, id, getPrincipal().getId());
     }
 
     private UserDetailsImpl getPrincipal() {
