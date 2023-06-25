@@ -2,16 +2,13 @@ package com.example.projecttaskmanager.controller;
 
 import com.example.projecttaskmanager.dto.*;
 import com.example.projecttaskmanager.entity.TaskMark;
-import com.example.projecttaskmanager.exception.FakeMemberException;
-import com.example.projecttaskmanager.exception.InvalidRequestBodyException;
-import com.example.projecttaskmanager.exception.StoryNotFoundException;
-import com.example.projecttaskmanager.exception.UserNotFoundException;
+import com.example.projecttaskmanager.entity.TaskStatus;
+import com.example.projecttaskmanager.exception.*;
 import com.example.projecttaskmanager.security.UserDetailsImpl;
 import com.example.projecttaskmanager.service.ProjectService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -98,6 +95,30 @@ public class ProjectController {
     @ResponseStatus(NO_CONTENT)
     public void removeMember(@PathVariable Long projectId, @PathVariable Long id) throws UserNotFoundException, FakeMemberException {
         projectService.removeMember(projectId, id, getPrincipal().getId());
+    }
+
+    @PatchMapping("/story/{storyId}/tasks/{taskId}/assign")
+    @ResponseStatus(NO_CONTENT)
+    public void assignTask(@PathVariable Long storyId, @PathVariable Long taskId)
+            throws UserNotFoundException, FakeMemberException, TaskNotFoundException, StoryNotFoundException {
+
+        projectService.assignTask(storyId, taskId, getPrincipal().getId());
+    }
+
+    @PatchMapping("/story/{storyId}/tasks/{taskId}")
+    @ResponseStatus(NO_CONTENT)
+    public void changeTaskStatus(@PathVariable Long storyId, @PathVariable Long taskId, @RequestParam String status)
+            throws
+            UserNotFoundException, FakeMemberException, TaskNotFoundException,
+            StoryNotFoundException, InvalidRequestBodyException {
+
+        TaskStatus selectedStatus;
+        try {
+            selectedStatus = TaskStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestBodyException("invalid status");
+        }
+        projectService.changeTaskStatus(storyId, taskId, selectedStatus, getPrincipal().getId());
     }
 
     private UserDetailsImpl getPrincipal() {
